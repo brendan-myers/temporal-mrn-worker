@@ -14,32 +14,36 @@ import (
 )
 
 func RegionWorkflow(ctx workflow.Context) error {
+	slog.Info("Worklow started")
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		ScheduleToCloseTimeout: 2 * time.Second,
+		ScheduleToCloseTimeout: 1 * time.Minute,
 	})
 
 	var region string
 
-	for i := 0; i < 36; i++ { // 36 * 5s sleep = 3 minutes
-
+	for !workflow.GetInfo(ctx).GetContinueAsNewSuggested() {
+		slog.Info("Executing 'GetRegion' activity")
 		err := workflow.ExecuteActivity(ctx, GetRegion).Get(ctx, &region)
 		if err != nil {
 			slog.Error(err.Error())
 			return err
 		}
-
-		workflow.Sleep(ctx, time.Second*5)
+		slog.Info("Execution finished: " + region)
 	}
 
-	return nil
+	slog.Info("Workflow finished - continue as new")
+	return workflow.NewContinueAsNewError(ctx, RegionWorkflow)
 }
 
 func GetRegion(ctx context.Context) (string, error) {
+	slog.Info(("Activity started"))
+	time.Sleep(15 * time.Second)
+	slog.Info("Activity finished")
 	return os.Getenv("TEMPORAL_REGION"), nil
 }
 
 func main() {
-	slog.Info("Starting")
+	slog.Info("Starting worker")
 
 	var host, hostport string
 	namespace, namespaceSet := os.LookupEnv("TEMPORAL_NAMESPACE")
@@ -51,7 +55,7 @@ func main() {
 		return
 	}
 
-	slog.Info(host)
+	slog.Info("Connecting to " + host)
 
 	clientKeyPath := os.Getenv("TEMPORAL_TLS_KEY")
 	clientCertPath := os.Getenv("TEMPORAL_TLS_CERT")
@@ -88,5 +92,5 @@ func main() {
 		slog.Error("Unable to start Worker", err)
 	}
 
-	slog.Info("Stopping")
+	slog.Info("Stopping worker")
 }
