@@ -83,11 +83,11 @@ func main() {
 	}
 	defer temporalClient.Close()
 
-	regionWOrker := worker.New(temporalClient, "mrn-test", worker.Options{})
-	regionWOrker.RegisterWorkflow(RegionWorkflow)
-	regionWOrker.RegisterActivity(GetRegion)
+	regionWorker := worker.New(temporalClient, "mrn-test", worker.Options{})
+	regionWorker.RegisterWorkflow(RegionWorkflow)
+	regionWorker.RegisterActivity(GetRegion)
 
-	err = regionWOrker.Run(worker.InterruptCh())
+	err = regionWorker.Run(worker.InterruptCh())
 	if err != nil {
 		slog.Error("Unable to start Worker", err)
 	}
