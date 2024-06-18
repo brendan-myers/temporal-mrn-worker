@@ -14,7 +14,9 @@ import (
 )
 
 func RegionWorkflow(ctx workflow.Context) error {
-	slog.Info("Worklow started")
+	logger := workflow.GetLogger(ctx)
+
+	logger.Info("Worklow started")
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 90 * time.Second,
 	})
@@ -22,16 +24,16 @@ func RegionWorkflow(ctx workflow.Context) error {
 	var region string
 
 	for !workflow.GetInfo(ctx).GetContinueAsNewSuggested() {
-		slog.Info("Executing 'GetRegion' activity")
+		logger.Info("Executing 'GetRegion' activity")
 		err := workflow.ExecuteActivity(ctx, GetRegion).Get(ctx, &region)
 		if err != nil {
-			slog.Error(err.Error())
+			logger.Error(err.Error())
 			return err
 		}
-		slog.Info("Execution finished: " + region)
+		logger.Info("Execution finished: " + region)
 	}
 
-	slog.Info("Workflow finished - continue as new")
+	logger.Info("Workflow finished - continue as new")
 	return workflow.NewContinueAsNewError(ctx, RegionWorkflow)
 }
 
