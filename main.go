@@ -16,7 +16,7 @@ import (
 func RegionWorkflow(ctx workflow.Context) error {
 	slog.Info("Worklow started")
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		ScheduleToCloseTimeout: 1 * time.Minute,
+		StartToCloseTimeout: 90 * time.Second,
 	})
 
 	var region string
@@ -37,7 +37,7 @@ func RegionWorkflow(ctx workflow.Context) error {
 
 func GetRegion(ctx context.Context) (string, error) {
 	slog.Info(("Activity started"))
-	time.Sleep(15 * time.Second)
+	time.Sleep(60 * time.Second)
 	slog.Info("Activity finished")
 	return os.Getenv("TEMPORAL_REGION"), nil
 }
